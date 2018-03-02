@@ -25,19 +25,16 @@ passport.use(
         callbackURL: '/auth/google/callback',
         proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-        //async query with .then promise
-        User.findOne({ googleId: profile.id }).then(existingUser => {
-            //there is existing user with this id in mongoDB
-            if(existingUser) {
-                done(null, existingUser);
-            }
-            //no existing user
-            else {
-                new User({ googleId: profile.id })
-                    .save()
-                    .then(user => done(null, user));
-            }
-        });
+    async (accessToken, refreshToken, profile, done) => {
+        //async query that returns a promise
+        const existingUser = await User.findOne({ googleId: profile.id })
+        //there is existing user with this id in mongoDB
+        if(existingUser) {
+            done(null, existingUser);
+        }
+        else {
+            const user = await new User({ googleId: profile.id }).save();
+            done(null, user);
+        }
     })
 );
